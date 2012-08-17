@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/dialog"
+    android:orientation="vertical" >
+	<TextView
+	    android:id="@+id/down_tv"
+		android:layout_margin="5dip"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_gravity="center_horizontal"
+		android:text="@string/download_begin"
+		android:textSize="24dip"
+		android:textColor="@android:color/white" />
+	
+	<RelativeLayout
+	     android:layout_margin="10dip"
+	     android:layout_width="match_parent"
+	     android:layout_height="wrap_content"
+          android:layout_gravity="center_horizontal"
+	     >
+	     <ProgressBar
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:id="@+id/down_pb"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            />
+	     <TextView
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/white"
+            android:textSize="20sp" />
+	</RelativeLayout>
+	<TextView
+	    	android:id="@+id/down_status"
+	    	android:layout_margin="5dip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:textSize="20dip"
+            android:textColor="@android:color/white" />
+</LinearLayout>
