@@ -255,18 +255,24 @@ public class ProxytestActivity extends Activity {
 	                	httpResponse = httpClient.execute(httpGet);
 	                	if (httpResponse.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
 		                    httpEntity = httpResponse.getEntity();
+		                    int length = (int)httpEntity.getContentLength();
+		                    if (length < 0) {
+		                    	Log.w(TAG, "Can not get file size");
+		                    	postUpdaterUiMsg(MSG_DOWNLOAD_FAIL);
+		                    	return;
+		                    }
+		                    
+		                    mFilesize = length;
+		                    mDownloadSize = 0;
+		                    Log.d(TAG, "File size : " + mFilesize);
+		                    postUpdaterUiMsg(MSG_DOWNLOAD_START);
+		                    
 		                    inputStream = httpEntity.getContent();
 		                    
 		                    File saveFile = new File(mSaveFilepath);
 		                    if (saveFile.exists()) {
 		                    	saveFile.delete();
 		                    }
-		                    
-		                    mDownloadSize = 0;
-		                    mFilesize = (int)httpEntity.getContentLength();
-		                    Log.d(TAG, "File size : " + mFilesize);
-		                    postUpdaterUiMsg(MSG_DOWNLOAD_START);
-		                    
 		                    fout = new FileOutputStream(saveFile);
 		                    byte[] buf = new byte[1024];
 							int ch = -1;
