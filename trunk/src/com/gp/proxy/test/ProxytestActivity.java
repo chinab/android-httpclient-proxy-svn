@@ -10,12 +10,14 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.params.ConnRouteParams;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.net.Proxy;
 import android.os.Bundle;
 import android.os.Environment;
@@ -53,8 +55,14 @@ public class ProxytestActivity extends Activity {
         HOSTNAME_PATTERN = Pattern.compile(HOSTNAME_REGEXP);
     }
     
+	static final int CONNECT_TIMEOUT = 10000;
+	static final int SOCKET_TIMEOUT = 10000;
+	
     private final int MSG_DOWNLOAD_START = 0;
     private final int MSG_DOWNLOAD_RUN = 1;
+    private final int MSG_CONNECT_FAIL = 2;
+    private final int MSG_DOWNLOAD_FAIL = 3;
+    
     
 	private EditText mFileUrlField;
     private EditText mHostnameField;
@@ -171,6 +179,14 @@ public class ProxytestActivity extends Activity {
 					if (mDownloadDialog != null) {
 						mDownloadDialog.setCurrrentSize(mDownloadSize);
 					}
+					break;	
+				case MSG_CONNECT_FAIL:
+					Toast.makeText(ProxytestActivity.this, "Connect fail!", Toast.LENGTH_LONG).show();
+					break;
+				case MSG_DOWNLOAD_FAIL:
+					Toast.makeText(ProxytestActivity.this, "Download fail!", Toast.LENGTH_LONG).show();
+					break;
+				default:
 					break;
 	    		}
 	    	}
@@ -182,6 +198,25 @@ public class ProxytestActivity extends Activity {
 		Message uiMsg = new Message();
 		uiMsg.what = msg;
 		mUiHandler.sendMessage(uiMsg);		
+	}
+	
+	void httpClientSetProxy(HttpParams httpParams) {		
+        final String host = mHostname;
+        final String portStr = mPort;
+        int port = -1;
+        if ("".equals(host) || "".equals(portStr)) {
+        	Log.w(TAG, "Invalidate user proxy");
+        	return;
+        }
+ 
+        try {
+        	port = Integer.parseInt(portStr);
+        } catch (Exception e) {
+        	e.printStackTrace();
+        }
+        
+        HttpHost proxy = new HttpHost(host, port);   
+        httpParams.setParameter(ConnRouteParams.DEFAULT_PROXY, proxy);	
 	}
 	
     OnClickListener mOKHandler = new OnClickListener() {
@@ -207,11 +242,11 @@ public class ProxytestActivity extends Activity {
 	                InputStream inputStream = null;
 	                FileOutputStream fout = null;
 	                
-	                int port = Integer.parseInt(mPort);
-	                
-	                HttpHost proxy = new HttpHost(mHostname, port);
 	                HttpParams httpParams = new BasicHttpParams();
-	                httpParams.setParameter(ConnRouteParams.DEFAULT_PROXY, proxy);
+	                httpClientSetProxy(httpParams);
+	                HttpConnectionParams.setConnectionTimeout(httpParams, CONNECT_TIMEOUT);
+				    HttpConnectionParams.setSoTimeout(httpParams, SOCKET_TIMEOUT);				    
+	                
 	                HttpClient httpClient = new DefaultHttpClient(httpParams);  
 	                
 	                mIsBreak = false;
@@ -248,16 +283,11 @@ public class ProxytestActivity extends Activity {
 		                    
 		                    httpClient.getConnectionManager().shutdown();
 	                    } else {
-	                    	Toast.makeText(ProxytestActivity.this, "Connect fail!", Toast.LENGTH_LONG).show();
+	                    	postUpdaterUiMsg(MSG_CONNECT_FAIL);
 	                    }	                   
-	                } catch (ClientProtocolException e) {
-	                	Log.e(TAG, "Get ClientProtocolException");
-	                    e.printStackTrace();
-	                } catch (IOException e) {
-	                	Log.e(TAG, "Get IOException");
-	                    e.printStackTrace();
 	                } catch (Exception e) {
-	                	    e.printStackTrace();
+	                	e.printStackTrace();
+	                	postUpdaterUiMsg(MSG_DOWNLOAD_FAIL);	                	
 	                } finally{
 	                	if (inputStream != null) {
 		                    try {		                    	
