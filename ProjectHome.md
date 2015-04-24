@@ -1,0 +1,1 @@
+This is a Android test project. If you want to download a file with proxy, this is a good sample for you.
